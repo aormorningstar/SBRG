@@ -3,7 +3,7 @@ using Test
 # the source code to be tested
 include("../src/SBRG.jl")
 
-@testset "utils.is_sorted_unique" begin
+@testset "is_sorted_unique" begin
     # set up test arguments and outputs
     v1 = [1, 2, 5, 7]
     v2 = [1, 2, 5, 5, 7]
@@ -18,7 +18,7 @@ include("../src/SBRG.jl")
     end
 end
 
-@testset "utils.size_intersection_sorted_unique" begin
+@testset "size_intersection_sorted_unique" begin
     # set up some test arguments and outputs
     v1 = [1, 2, 3, 4]
     v2 = [1, 2]
@@ -32,7 +32,7 @@ end
     end
 end
 
-@testset "utils.symdiff_sorted_unique" begin
+@testset "symdiff_sorted_unique" begin
     # set up test arguments and outputs
     v1 = [2, 5, 7, 8, 10, 12, 15]
     v2 = [5, 8, 11, 12]
@@ -49,13 +49,16 @@ end
     end
 end
 
-@testset "Pauli" begin
+@testset "Pauli & Term" begin
     # set up test arguments and outputs
     X1Y2 = Pauli(1, [1, 2], [2])
     X2Y3 = Pauli(1, [2, 3], [3])
+    T1 = Term(2, X1Y2)
+    T2 = Term(3, X2Y3)
     # set up outputs
     X1Y2X2Y3 = Pauli(0, [1, 3], [2, 3])
     X2Y3X1Y2 = Pauli(2, [1, 3], [2, 3])
+    T1T2 = Term(6, X1Y2X2Y3)
     # check for correctness
     @test X1Y2 == X1Y2
     @test X1Y2 != X2Y3
@@ -63,4 +66,5 @@ end
     @test X2Y3 * X1Y2 == X2Y3X1Y2
     @test_throws MethodError Pauli(5, [], [])
     @test_throws AssertionError Pauli(2, [2, 1], [1])
+    @test T1*T2 == T1T2
 end

@@ -16,6 +16,9 @@ end
 # are two terms proportional?
 prop(T1::Term, T2::Term) = prop(T1.O, T2.O)
 
+# are two terms equal?
+(==)(T1::Term, T2::Term) = T1.h == T2.h && T1.O == T2.O
+
 # a Hamiltonian
 mutable struct Hamiltonian
     nothing
