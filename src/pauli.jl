@@ -33,3 +33,10 @@ end
 
 # are two paulis equal?
 (==)(O1::Pauli, O2::Pauli) = O1.p == O2.p && prop(O1, O2)
+
+# do two paulis commute?
+function commute(O1::Pauli, O2::Pauli)
+    sb2a1 = size_intersection_sorted_unique(O2.b, O1.a)
+    sb1a2 = size_intersection_sorted_unique(O1.b, O2.a)
+    iseven(sb2a1 - sb1a2)
+end

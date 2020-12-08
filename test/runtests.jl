@@ -53,6 +53,9 @@ end
     # set up test arguments and outputs
     X1Y2 = Pauli(1, [1, 2], [2])
     X2Y3 = Pauli(1, [2, 3], [3])
+    X1X2 = Pauli(0, [1, 2], Int64[])
+    Z1Z2 = Pauli(0, Int64[], [1, 2])
+    Y1Y2 = Pauli(0, [1, 2], [1, 2])
     T1 = Term(2, X1Y2)
     T2 = Term(3, X2Y3)
     # set up outputs
@@ -64,7 +67,11 @@ end
     @test X1Y2 != X2Y3
     @test X1Y2 * X2Y3 == X1Y2X2Y3
     @test X2Y3 * X1Y2 == X2Y3X1Y2
-    @test_throws MethodError Pauli(5, [], [])
+    @test !commute(X1Y2, X2Y3)
+    @test commute(X1X2, Z1Z2)
+    @test commute(X1X2, Y1Y2)
+    @test commute(Y1Y2, Z1Z2)
+    @test_throws AssertionError Pauli(5, Int64[], Int64[])
     @test_throws AssertionError Pauli(2, [2, 1], [1])
     @test T1*T2 == T1T2
 end
