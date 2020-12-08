@@ -1,2 +1,6 @@
+import Base: show, +, *, ==
 
-# include(".jl")
+# tools
+include("utils.jl")
+# pauli group elements
+include("pauli.jl")
