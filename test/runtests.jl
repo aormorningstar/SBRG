@@ -58,6 +58,9 @@ end
     X2Y3X1Y2 = Pauli(2, [1, 3], [2, 3])
     # check for correctness
     @test X1Y2 == X1Y2
-    @test X1Y2*X2Y3 == X1Y2X2Y3
-    @test X2Y3*X1Y2 == X2Y3X1Y2
+    @test X1Y2 != X2Y3
+    @test X1Y2 * X2Y3 == X1Y2X2Y3
+    @test X2Y3 * X1Y2 == X2Y3X1Y2
+    @test_throws MethodError Pauli(5, [], [])
+    @test_throws AssertionError Pauli(2, [2, 1], [1])
 end
