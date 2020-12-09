@@ -21,5 +21,15 @@ prop(T1::Term, T2::Term) = prop(T1.O, T2.O)
 
 # a Hamiltonian
 mutable struct Hamiltonian
-    nothing
+    # terms
+    T::Vector{Term}
 end
+
+# number of terms in the Hamiltonian
+numterms(H::Hamiltonian) = length(H.T)
+
+# index Hamiltonian to get term
+getindex(H::Hamiltonian, i) = getindex(H.T, i)
+
+# set term in the Hamiltonian
+setindex!(H::Hamiltonian, T::Term, i) = setindex!(H.T, T, i)

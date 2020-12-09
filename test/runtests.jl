@@ -75,3 +75,23 @@ end
     @test_throws AssertionError Pauli(2, [2, 1], [1])
     @test T1*T2 == T1T2
 end
+
+@testset "Hamiltonian" begin
+    # some pauli operators on three sites
+    X1X2 = Pauli(0, [1,2], Int[]);
+    X2X3 = Pauli(0, [2,3], Int[]);
+    Z1 = Pauli(0, Int[], [1])
+    Z2 = Pauli(0, Int[], [2])
+    Z3 = Pauli(0, Int[], [3])
+    Os = (X1X2, X2X3, Z1, Z2, Z3)
+    # coefficients
+    J12, J23, h1, h2, h3 = rand(5)
+    hs = (J12, J23, h1, h2, h3)
+    # hamiltonian
+    H = Hamiltonian([Term(h, O) for (h, O) in zip(hs, Os)])
+    # test indexing
+    @test H[2] == Term(J23, X2X3)
+    J23 = rand()
+    H[2] = Term(J23, X2X3)
+    @test H[2] == Term(J23, X2X3)
+end

@@ -1,4 +1,4 @@
-import Base: show, +, *, ==
+import Base: show, +, *, ==, getindex, setindex!
 
 # tools
 include("utils.jl")
