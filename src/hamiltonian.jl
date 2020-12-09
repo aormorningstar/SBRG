@@ -1,6 +1,6 @@
 # a term in the Hamiltonian
 struct Term{T<:Real}
-    # real numerical coefficient
+    # energy coefficient
     h::T
     # pauli group element
     O::Pauli
@@ -18,6 +18,9 @@ prop(T1::Term, T2::Term) = prop(T1.O, T2.O)
 
 # are two terms equal?
 (==)(T1::Term, T2::Term) = T1.h == T2.h && T1.O == T2.O
+
+# norm is given by magnitude of coefficient
+abs(T::Term) = abs(T.h)
 
 # a Hamiltonian
 mutable struct Hamiltonian
