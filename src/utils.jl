@@ -56,10 +56,44 @@ function symdiff_sorted_unique(v1::T, v2::T) where T<:AbstractArray
             end
         end
         if i1 > s1 && i2 <= s2
-            append!(sdiff, v2[i2:end])
+            append!(sdiff, view(v2, i2:s2))
         elseif i2 > s2 && i1 <= s1
-            append!(sdiff, v1[i1:end])
+            append!(sdiff, view(v1, i1:s1))
         end
     end
     sdiff
+end
+
+# union of two sorted vectors of unique elements
+function union_sorted_unique(v1::T, v2::T) where T<:AbstractArray
+    s1 = length(v1)
+    s2 = length(v2)
+    uni = T()
+    if s1 == 0
+        append!(uni, v2)
+    elseif s2 == 0
+        append!(uni, v1)
+    else
+        i1 = 1
+        i2 = 1
+        while i1 <= s1 && i2 <= s2
+            if v1[i1] < v2[i2]
+                push!(uni, v1[i1])
+                i1 += 1
+            elseif v2[i2] < v1[i1]
+                push!(uni, v2[i2])
+                i2 += 1
+            else
+                push!(uni, v1[i1])
+                i1 += 1
+                i2 += 1
+            end
+        end
+        if i1 > s1 && i2 <= s2
+            append!(uni, view(v2, i2:s2))
+        elseif i2 > s2 && i1 <= s1
+            append!(uni, view(v1, i1:s1))
+        end
+    end
+    uni
 end

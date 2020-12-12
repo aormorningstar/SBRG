@@ -49,6 +49,24 @@ end
     end
 end
 
+@testset "union_sorted_unique" begin
+    # set up test arguments and outputs
+    v1 = [1, 4, 6, 7]
+    v2 = [2, 5, 6]
+    v3 = [4, 7, 9]
+    v4 = Int[]
+    args = ((v1, v2), (v1, v3), (v1, v4))
+    outs = (
+        [1, 2, 4, 5, 6, 7],
+        [1, 4, 6, 7, 9],
+        v1,
+    )
+    # check for correctness
+    for (arg, out) in zip(args, outs)
+        @test all(union_sorted_unique(arg...) .== out)
+    end
+end
+
 @testset "Pauli & Term" begin
     # set up test arguments and outputs
     X1Y2 = Pauli(1, [1, 2], [2])
@@ -73,6 +91,8 @@ end
     @test commute(Y1Y2, Z1Z2)
     @test_throws AssertionError Pauli(5, Int64[], Int64[])
     @test_throws AssertionError Pauli(2, [2, 1], [1])
+    @test all(sites(X1Y2) .== [1, 2])
+    @test center(X1Y2) == 1.5
     @test T1*T2 == T1T2
 end
 
