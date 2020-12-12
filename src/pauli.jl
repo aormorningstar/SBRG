@@ -40,3 +40,48 @@ function commute(O1::Pauli, O2::Pauli)
     sb1a2 = size_intersection_sorted_unique(O1.b, O2.a)
     iseven(sb2a1 - sb1a2)
 end
+
+# sorted sites on which the pauli has non-identity action
+sites(O::Pauli) = union_sorted_unique(O.a, O.b)
+
+# center location of the pauli operator
+function center(O::Pauli)
+    la = length(O.a)
+    lb = length(O.b)
+    if la > 0 && lb > 0
+        return (min(O.a[1], O.b[1]) + min(O.a[end], O.b[end])) / 2.
+    elseif la == 0 && lb > 0
+        return (O.b[1] + O.b[end]) / 2.
+    elseif la > 0 && lb == 0
+        return (O.a[1] + O.a[end]) / 2.
+    else
+        return 0.
+    end
+end
+
+# a term in a Hamiltonian
+struct Term{T<:Real}
+    # energy coefficient
+    h::T
+    # pauli group element
+    O::Pauli
+end
+
+# multiply two terms
+function *(T1::Term, T2::Term)
+    h = T1.h * T2.h
+    O = T1.O * T2.O
+    Term(h, O)
+end
+
+# are two terms proportional?
+prop(T1::Term, T2::Term) = prop(T1.O, T2.O)
+
+# are two terms equal?
+(==)(T1::Term, T2::Term) = T1.h == T2.h && T1.O == T2.O
+
+# norm is given by magnitude of coefficient
+norm(T::Term) = abs(T.h)
+
+# center location of the term
+center(T::Term) = center(T.O)
