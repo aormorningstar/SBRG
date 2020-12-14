@@ -1,16 +1,16 @@
 # element of the Pauli group
-struct Pauli{T<:Integer}
+struct Pauli
     # exponent of i in [0, 3]
     p::Int64
     # nonrepeating sorted sites at which there's a X operator
-    a::Vector{T}
+    a::Vector{Int}
     # nonrepeating sorted sites at which there's a Z operator
-    b::Vector{T}
+    b::Vector{Int}
     # constructor
-    function Pauli(p::Integer, a::Vector{T}, b::Vector{T}) where T<:Integer
+    function Pauli(p::Integer, a::Vector{Int}, b::Vector{Int})
         @assert 0 <= p <= 3 "p must be in [0, 3]."
         @assert is_sorted_unique(a) && is_sorted_unique(b) "a and b must be unique and sorted."
-        new{T}(p, a, b)
+        new(p, a, b)
     end
 end
 
@@ -70,9 +70,9 @@ function center(O::Pauli)
 end
 
 # a term in a Hamiltonian
-struct Term{T<:Real}
+struct Term
     # energy coefficient
-    h::T
+    h::Float64
     # pauli group element
     O::Pauli
 end
