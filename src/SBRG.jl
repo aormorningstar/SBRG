@@ -1,4 +1,4 @@
-import Base: show, +, *, ==, getindex, setindex!, findmax, isless
+import Base: show, +, *, ==
 
 # tools
 include("utils.jl")

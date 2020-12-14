@@ -23,7 +23,7 @@ end
     v1 = [1, 2, 3, 4]
     v2 = [1, 2]
     v3 = [2, 4]
-    v4 = []
+    v4 = Int[]
     args = ((v1, v2), (v2, v1), (v1, v3), (v3, v1), (v1, v4), (v4, v1), (v4, v4))
     outs = (2, 2, 2, 2, 0, 0, 0)
     # check for correctness
@@ -96,7 +96,7 @@ end
     @test T1*T2 == T1T2
 end
 
-@testset "Hamiltonian" begin
+@testset "RGHamiltonian" begin
     # some pauli operators on three sites
     X1X2 = Pauli(0, [1,2], Int[]);
     X2X3 = Pauli(0, [2,3], Int[]);
@@ -105,13 +105,7 @@ end
     Z3 = Pauli(0, Int[], [3])
     Os = (X1X2, X2X3, Z1, Z2, Z3)
     # coefficients
-    J12, J23, h1, h2, h3 = rand(5)
-    hs = (J12, J23, h1, h2, h3)
+    hs = rand(length(Os))
     # hamiltonian
-    H = Hamiltonian([Term(h, O) for (h, O) in zip(hs, Os)])
-    # test indexing
-    @test H[2] == Term(J23, X2X3)
-    J23 = rand()
-    H[2] = Term(J23, X2X3)
-    @test H[2] == Term(J23, X2X3)
+    H = RGHamiltonian([Term(h, O) for (h, O) in zip(hs, Os)])
 end
