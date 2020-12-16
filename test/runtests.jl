@@ -3,69 +3,80 @@ using Test
 # the source code to be tested
 include("../src/SBRG.jl")
 
-@testset "is_sorted_unique" begin
-    # set up test arguments and outputs
-    v1 = [1, 2, 5, 7]
-    v2 = [1, 2, 5, 5, 7]
-    v3 = [1, 2, 5, 7, 7]
-    v4 = [1, 1, 2, 5, 7]
-    v5 = [2, 1 , 2, 5, 7]
-    args = (v1, v2, v3, v4, v5)
-    outs = (true, false, false, false, false)
-    # check for correctness
-    for (arg, out) in zip(args, outs)
-        @test is_sorted_unique(arg) == out
+# @testset "SUVector" begin
+@testset "constructor" begin
+    vs = (
+        [1, 2, 5, 5, 7],
+        [1, 2, 5, 7, 7],
+        [1, 1, 2, 5, 7],
+        [1, 5, 2, 5, 7],
+        [1, 5, 2, 7],
+        [2, 1, 5, 7],
+        [1, 2, 7, 5],
+    )
+    for v in vs
+        @test_throws AssertionError SUVector(v)
     end
 end
-
-@testset "size_intersection_sorted_unique" begin
-    # set up some test arguments and outputs
-    v1 = [1, 2, 3, 4]
-    v2 = [1, 2]
-    v3 = [2, 4]
-    v4 = Int[]
-    args = ((v1, v2), (v2, v1), (v1, v3), (v3, v1), (v1, v4), (v4, v1), (v4, v4))
-    outs = (2, 2, 2, 2, 0, 0, 0)
-    # check for correctness
+@testset "indexing, push, append" begin
+    v = SUVector([1, 5, 10])
+    @test size(v) == (3,)
+    @test v[2] == 5
+    @test v[end] == 10
+    @test (v[2] = 4) == 4
+    @test_throws AssertionError v[2] = 11
+    push!(v, 11)
+    append!(v, [14, 18])
+    @test v[4] == 11
+    @test v[end] == 18
+end
+@testset "intersect" begin
+    v1 = SUVector([1, 2, 3, 4])
+    v2 = SUVector([1, 2])
+    v3 = SUVector([2, 4])
+    v4 = SUVector{Int}()
+    args = ((v1, v2), (v1, v3), (v1, v4), (v4, v4))
+    outs = (
+        SUVector([1, 2]),
+        SUVector([2, 4]),
+        v4,
+        v4,
+    )
     for (arg, out) in zip(args, outs)
-        @test size_intersection_sorted_unique(arg...) == out
+        @test all(intersect(arg...) .== out)
     end
 end
-
-@testset "symdiff_sorted_unique" begin
-    # set up test arguments and outputs
-    v1 = [2, 5, 7, 8, 10, 12, 15]
-    v2 = [5, 8, 11, 12]
-    v3 = Int[]
+@testset "symdiff" begin
+    v1 = SUVector([2, 5, 7, 8, 10, 12, 15])
+    v2 = SUVector([5, 8, 11, 12])
+    v3 = SUVector{Int}()
     args = ((v1, v2), (v2, v3), (v3, v3))
     outs = (
-        [2, 7, 10, 11, 15],
+        SUVector([2, 7, 10, 11, 15]),
         v2,
         v3,
     )
-    # check for correctness
     for (arg, out) in zip(args, outs)
-        @test all(symdiff_sorted_unique(arg...) .== out)
+        @test all(symdiff(arg...) .== out)
     end
 end
-
-@testset "union_sorted_unique" begin
-    # set up test arguments and outputs
-    v1 = [1, 4, 6, 7]
-    v2 = [2, 5, 6]
-    v3 = [4, 7, 9]
-    v4 = Int[]
+@testset "union" begin
+    v1 = SUVector([1, 4, 6, 7])
+    v2 = SUVector([2, 5, 6])
+    v3 = SUVector([4, 7, 9])
+    v4 = SUVector{Int}()
     args = ((v1, v2), (v1, v3), (v1, v4))
     outs = (
-        [1, 2, 4, 5, 6, 7],
-        [1, 4, 6, 7, 9],
+        SUVector([1, 2, 4, 5, 6, 7]),
+        SUVector([1, 4, 6, 7, 9]),
         v1,
     )
     # check for correctness
     for (arg, out) in zip(args, outs)
-        @test all(union_sorted_unique(arg...) .== out)
+        @test all(union(arg...) .== out)
     end
 end
+# end
 
 @testset "Pauli & Term" begin
     # set up test arguments and outputs

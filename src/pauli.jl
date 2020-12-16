@@ -1,27 +1,31 @@
 # element of the Pauli group
 struct Pauli
     # exponent of i in [0, 3]
-    p::Int64
+    p::Int
     # nonrepeating sorted sites at which there's a X operator
-    a::Vector{Int}
+    a::SUVector{Int}
     # nonrepeating sorted sites at which there's a Z operator
-    b::Vector{Int}
+    b::SUVector{Int}
     # constructor
-    function Pauli(p::Integer, a::Vector{Int}, b::Vector{Int})
+    function Pauli(p::Int, a::SUVector{Int}, b::SUVector{Int})
         @assert 0 <= p <= 3 "p must be in [0, 3]."
-        @assert is_sorted_unique(a) && is_sorted_unique(b) "a and b must be unique and sorted."
         new(p, a, b)
     end
+end
+
+# constructor
+function Pauli(p::Int, a::Vector{Int}, b::Vector{Int})
+    Pauli(p, SUVector(a), SUVector(b))
 end
 
 # multiply paulis
 function *(O1::Pauli, O2::Pauli)
     # the exponent of i
-    p = mod(O1.p + O2.p + 2*size_intersection_sorted_unique(O1.b, O2.a), 4)
+    p = mod(O1.p + O2.p + 2*length(intersect(O1.b, O2.a)), 4)
     # X sites
-    a = symdiff_sorted_unique(O1.a, O2.a)
+    a = symdiff(O1.a, O2.a)
     # Z sites
-    b = symdiff_sorted_unique(O1.b, O2.b)
+    b = symdiff(O1.b, O2.b)
     Pauli(p, a, b)
 end
 
@@ -39,8 +43,8 @@ end
 function commute(O1::Pauli, O2::Pauli)
     # number of sites with X in O1 or O2 and Z in the other
     iseven(
-        size_intersection_sorted_unique(O2.b, O1.a)
-        - size_intersection_sorted_unique(O1.b, O2.a)
+        length(intersect(O2.b, O1.a))
+        - length(intersect(O1.b, O2.a))
     )
 end
 
@@ -48,7 +52,7 @@ end
 anticommute(O1::Pauli, O2::Pauli) = !commute(O1, O2)
 
 # sorted sites on which the pauli has non-identity action
-sites(O::Pauli) = union_sorted_unique(O.a, O.b)
+sites(O::Pauli) = union(O.a, O.b)
 
 # center location of the pauli operator
 function center(O::Pauli)
