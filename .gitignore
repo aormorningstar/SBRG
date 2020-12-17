@@ -27,4 +27,4 @@ Manifest.toml
 */.ipynb_checkpoints
 
 # Development in notebook
-src/dev.ipynb
+examples/*.ipynb
