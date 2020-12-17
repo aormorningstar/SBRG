@@ -18,8 +18,8 @@ struct SUVector{T} <: AbstractVector{T}
     function SUVector(data::AbstractVector{T}) where T
         # check sorted and unique properties
         @assert _checksu(data)
-        # NOTE: data is not copied
-        new{T}(data)
+        # NOTE: data is copied
+        new{T}(copy(data))
     end
 end
 

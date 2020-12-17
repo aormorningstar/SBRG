@@ -124,8 +124,8 @@ norm(T::Term) = abs(T.h)
 # center location of the term
 center(T::Term) = center(T.O)
 
-# add together terms when possible
-function add!(terms::Vector{Term})
+# combine terms when possible by adding them
+function combine!(terms::Vector{Term})
     # elements to be deleted
     del = Int[]
     # loop over terms and try to add them together
@@ -140,6 +140,21 @@ function add!(terms::Vector{Term})
         end
     end
     # delete terms that we added to others
+    deleteat!(terms, del)
+    terms
+end
+
+# drop zero terms
+function dropzeros!(terms::Vector{Term})
+    # elements to be deleted
+    del = Int[]
+    # find zero terms
+    for i in 1:length(terms)
+        if terms[i].h == 0.
+            push!(del, i)
+        end
+    end
+    # delete the zeros
     deleteat!(terms, del)
     terms
 end

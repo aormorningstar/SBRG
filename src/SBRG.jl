@@ -1,4 +1,4 @@
-import Base: show, +, *, ==, size, getindex, setindex!, show, intersect, symdiff, union, push!, append!
+import Base: show, +, *, ==, size, getindex, setindex!, show, intersect, symdiff, union, push!, append!, isless
 
 # vectors with elements that are sorted and unique
 include("suvector.jl")

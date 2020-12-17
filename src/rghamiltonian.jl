@@ -1,5 +1,5 @@
 # a Hamiltonian
-mutable struct RGHamiltonian
+struct RGHamiltonian
     # terms that anticommute with some other terms
     A::Vector{Term}
     # terms that commute with all other terms
@@ -47,7 +47,7 @@ function split!(H::RGHamiltonian)
     H0, Sigma
 end
 
-# compute the Schrieffer-Wolff corection to the Hamiltonian
+# compute the Schrieffer-Wolff correction to the Hamiltonian
 function SchriefferWolff(H0::Term, Sigma::Vector{Term})
     # number of terms in Sigma
     lSigma = length(Sigma)
@@ -70,7 +70,9 @@ function SchriefferWolff(H0::Term, Sigma::Vector{Term})
         end
     end
     # simplify by combining terms that can be added together
-    add!(SW)
+    combine!(SW)
+    # drop any zero terms
+    dropzeros!(SW)
     SW
 end
 
@@ -82,10 +84,6 @@ function step!(H::RGHamiltonian)
     SW = SchriefferWolff(H0, Sigma)
     # add SW terms to the Hamiltonian and simplify
     append!(H.A, SW)
-    add!(H.A)
-    #= TODO
-    thoroughly simplify the Hamiltonian:
-        - find terms that commute in H.A and move to H.C
-        - remove zero terms
-    =#
+    combine!(H.A)
+    dropzeros!(H.A)
 end
