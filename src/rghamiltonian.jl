@@ -9,68 +9,95 @@ end
 # constructor
 RGHamiltonian(A::Vector{Term}) = RGHamiltonian(A, typeof(A)[])
 
-# find index of largest anticommuting term
-function findH0(H::RGHamiltonian)
+# retrieve largest anticommuting term
+function popH0!(H::RGHamiltonian)
+    # init values to be overridden
+    iH0 = -1
+    h0 = 0.
     # run over all terms and compare
-    imax = 1
-    hmax = norm(H.A[imax])
-    for i in 2:length(H.A)
-        hi = norm(H.A[i])
-        if hi > hmax
+    for (i, T) in enumerate(H.A)
+        h = norm(T)
+        if h > h0
             # this term is the largest so far
-            imax = i
-            hmax = hi
+            iH0 = i
+            h0 = h
         end
     end
-    imax
+    # return H0 and remove it from H
+    H0 = H.A[iH0]
+    deleteat!(H.A, iH0)
+    H0
 end
 
-# apply the Schrieffer-Wolff transformation to the Hamiltonian
-function SchriefferWolff!(H::RGHamiltonian, iH0::Int)
-    # the largest term that anticommutes with another term
-    H0 = H.A[iH0]
+# retrieve terms that anticommute with H0
+function popS!(H::RGHamiltonian, H0::Term)
     # terms that anticommute with H0
-    iSigma = Int[]
-    # sum of h^2 over terms in Sigma
-    sumh2 = 0.
-    # # log ratio of matrix element to level spacing
-    # G = Float64[]
-    for i in 1:length(H.A)
-        if anticommute(H.A[i], H0)
-            # this term is to be eliminated perturbatively
-            push!(iSigma, i)
-            # "diagonal" term contributes to renormalizing H0
-            sumh2 += H.A[i].h^2
-            # # parameter to justify perturbative treatment
-            # push!(G, log(H.A[i].h) - log(H0.h))
+    iS = Int[]
+    for (i, T) in enumerate(H.A)
+        if anticommute(T, H0)
+            push!(iS, i)
         end
+    end
+    S = H.A[iS]
+    deleteat!(H.A, iS)
+    S
+end
+
+# compute the renormalized H0 ("on diagonal" Schrieffer-Wolff term)
+function renormalizeH0(H0::Term, S::Vector{Term})
+    # sum of h^2 over terms in S
+    sumh2 = 0.
+    for T in S
+        sumh2 += T.h^2
     end
     # renormalized h0
     h0r = H0.h + sumh2 / (2 * H0.h)
-    # put the renormalized H0 into the commuting terms
-    push!(H.C, h0r * H0.O)
+    # renormalized H0
+    h0r * H0.O
+end
+
+# compute the "off diagonal" Schrieffer-Wolff terms
+function schriefferwolff(H0::Term, S::Vector{Term})
     # "off diagonal" terms in the SW correction
-    for i in iSigma
-        for j in iSigma[iSigma .> i]
-            if commute(H.A[i], H.A[j])
-                push!(H.A, ((1 / H0.h) * H0.O) * H.A[i] * H.A[j])
+    SW = Term[]
+    lS = length(S)
+    for i in 1:lS
+        for j in i+1:lS
+            if commute(S[i], S[j])
+                push!(SW, ((1 / H0.h) * H0.O) * S[i] * S[j])
             end
         end
     end
-    # remove Sigma and H0 from anticommuting terms
-    insert!(iSigma, searchsortedfirst(iSigma, iH0), iH0)
-    deleteat!(H.A, iSigma)
-    # simplify by combining terms that can be added together
-    combine!(H.A)
+    # combine terms by adding them
+    combine!(SW)
     # drop any zero terms
-    dropzeros!(H.A)
-    # G
+    dropzeros!(SW)
+    SW
 end
 
 # perform an RG step
-function step!(H::RGHamiltonian)
-    # find the largest term
-    iH0 = findH0(H)
-    # apply the SW transformation
-    SchriefferWolff!(H, iH0)
+function step!(H::RGHamiltonian, maxrate::Int = 2)
+    # retrieve the largest term
+    H0 = popH0!(H)
+    # retrieve anticommuting terms
+    S = popS!(H, H0)
+    # the renormalized H0 term
+    rH0 = renormalizeH0(H0, S)
+    # add the renormalized H0 to H
+    push!(H.C, rH0)
+    # the SW terms
+    SW = schriefferwolff(H0, S)
+    # truncate SW terms
+    maxlen = maxrate * length(S)
+    if maxlen < length(SW)
+        sort!(SW, by=norm, rev=true)
+        resize!(SW, maxlen)
+    end
+    # add SW terms to H
+    append!(H.A, SW)
+    # add terms together if possible and drop zeros
+    combine!(H.A)
+    dropzeros!(H.A)
+    # return the G value of this step
+    isempty(S) ? nothing : log(maximum(norm, S)) - log(norm(H0))
 end
