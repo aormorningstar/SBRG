@@ -25,65 +25,52 @@ function findH0(H::RGHamiltonian)
     imax
 end
 
-# get H0 and Sigma
-# delete the Sigma terms from H
-# move H0 term from H.A to H.C
-function split!(H::RGHamiltonian)
+# apply the Schrieffer-Wolff transformation to the Hamiltonian
+function SchriefferWolff!(H::RGHamiltonian, iH0::Int)
     # the largest term that anticommutes with another term
-    iH0 = findH0(H)
     H0 = H.A[iH0]
     # terms that anticommute with H0
     iSigma = Int[]
+    # sum of h^2 over terms in Sigma
+    sumh2 = 0.
+    # # log ratio of matrix element to level spacing
+    # G = Float64[]
     for i in 1:length(H.A)
         if anticommute(H.A[i], H0)
+            # this term is to be eliminated perturbatively
             push!(iSigma, i)
+            # "diagonal" term contributes to renormalizing H0
+            sumh2 += H.A[i].h^2
+            # # parameter to justify perturbative treatment
+            # push!(G, log(H.A[i].h) - log(H0.h))
         end
     end
-    Sigma = H.A[iSigma]
-    # remove Sigma terms from H and classify H0 as commuting now
-    insert!(iSigma, searchsortedfirst(iSigma, iH0), iH0)
-    deleteat!(H.A, iSigma)
-    push!(H.C, H0)
-    H0, Sigma
-end
-
-# compute the Schrieffer-Wolff correction to the Hamiltonian
-function SchriefferWolff(H0::Term, Sigma::Vector{Term})
-    # number of terms in Sigma
-    lSigma = length(Sigma)
-    # terms in the SW correction
-    SW = Term[]
-    # the second-order factor
-    coef = 1 / (2 * H0.h^2)
-    # the "diagonal" terms of Sigma^2
-    sumh2 = 0.
-    for i in 1:lSigma
-        sumh2 += Sigma[i].h^2
-    end
-    push!(SW, (coef * sumh2) * H0)
-    # the "off diagonal" terms of Sigma^2
-    for i in 1:lSigma
-        for j in i+1:lSigma
-            if commute(Sigma[i], Sigma[j])
-                push!(SW, (2 * coef) * H0 * Sigma[i] * Sigma[j])
+    # renormalized h0
+    h0r = H0.h + sumh2 / (2 * H0.h)
+    # put the renormalized H0 into the commuting terms
+    push!(H.C, h0r * H0.O)
+    # "off diagonal" terms in the SW correction
+    for i in iSigma
+        for j in iSigma[iSigma .> i]
+            if commute(H.A[i], H.A[j])
+                push!(H.A, ((1 / H0.h) * H0.O) * H.A[i] * H.A[j])
             end
         end
     end
+    # remove Sigma and H0 from anticommuting terms
+    insert!(iSigma, searchsortedfirst(iSigma, iH0), iH0)
+    deleteat!(H.A, iSigma)
     # simplify by combining terms that can be added together
-    combine!(SW)
+    combine!(H.A)
     # drop any zero terms
-    dropzeros!(SW)
-    SW
+    dropzeros!(H.A)
+    # G
 end
 
 # perform an RG step
 function step!(H::RGHamiltonian)
-    # split the Hamiltonian
-    H0, Sigma = split!(H)
-    # compute the second-order SW terms
-    SW = SchriefferWolff(H0, Sigma)
-    # add SW terms to the Hamiltonian and simplify
-    append!(H.A, SW)
-    combine!(H.A)
-    dropzeros!(H.A)
+    # find the largest term
+    iH0 = findH0(H)
+    # apply the SW transformation
+    SchriefferWolff!(H, iH0)
 end
